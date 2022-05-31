@@ -1,4 +1,4 @@
-type 'a heap ={t:'a array;mutable n:int};;
+type 'a heap ={mutable t:'a array;mutable n:int};;
 
 let create_heap(len:int)(x:'a):'a heap={t=Array.make len x;n=0};;
 
@@ -11,7 +11,7 @@ let swap(i:int)(j:int)(h:'a heap):unit=
 ;;
 
 let rec sift_up(i:int)(h:'a heap):unit=
-  if(i<> 0 && h.t.(i)>h.t.((i-1)/2)) then begin
+  if(i<> 0 && h.t.(i) < h.t.((i-1)/2)) then begin
       swap i ((i-1)/2) h;
       sift_up ((i-1)/2) h;
     end;
@@ -19,8 +19,8 @@ let rec sift_up(i:int)(h:'a heap):unit=
 
 let rec sift_down(i:int)(h:'a heap):unit=
   let j = ref i in
-  if(2*i+1 < h.n && h.t.(i) < h.t.(2*i+1)) then j := 2*i+1;
-  if(2*i+2 < h.n && h.t.(2*i+2) > h.t.(!j)) then j:= 2*i+2;
+  if(2*i+1 < h.n && h.t.(i) > h.t.(2*i+1)) then j := 2*i+1;
+  if(2*i+2 < h.n && h.t.(2*i+2) < h.t.(!j)) then j:= 2*i+2;
   if !j<>i then begin
       swap i !j h;
       sift_down !j h;
@@ -29,7 +29,13 @@ let rec sift_down(i:int)(h:'a heap):unit=
 
 
 let add(x:'a)(h:'a heap):unit=
-  if h.n >= Array.length h.t then failwith "Plus de place dommage";
+  if h.n >= Array.length h.t then begin
+      let tab = Array.copy h.t in
+      h.t <- Array.make (2*h.n) x;
+      for i=0 to Array.length tab - 1 do
+        h.t.(i) <- tab.(i);
+      done;
+  end;
   h.t.(h.n) <- x;
   h.n <- h.n + 1;
   sift_up (h.n-1) h;
